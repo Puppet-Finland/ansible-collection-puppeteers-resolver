@@ -1,0 +1,30 @@
+---
+- name: Validate parameters
+  ansible.builtin.assert:
+    that:
+      - resolver_resolvconf_search is string
+      - resolver_resolvconf_nameserver_1 is string
+      - resolver_resolvconf_nameserver_2 is string
+- name: Disable management of /etc/resolv.conf by NetworkManager
+  ansible.builtin.ini_file:
+    state: present
+    path: /etc/NetworkManager/NetworkManager.conf
+    create: false
+    section: main
+    option: dns
+    value: none
+  notify:
+    - Restart NetworkManager
+- name: Configure /etc/resolv.conf
+  ansible.builtin.template:
+    src: templates/resolv.conf.j2
+    dest: /etc/resolv.conf
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+    seuser: system_u
+    serole: object_r
+    setype: net_conf_t
+    selevel: s0
+
